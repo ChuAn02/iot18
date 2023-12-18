@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block background %}
+<div class="bg" style=" background-image: url('/static/images/bg.jpg');"></div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <p class="display-1" style="color: aqua;">Smart room</p>
+    <div class="home-content-1">
+        <div class="device-info">
+            <p>Device: ESP32</p>
+            <p>Status:
+                <span style="color: aqua;">
+                    Connected
+                </span>
+                <i class="bi bi-wifi"></i>
+            </p>
+        </div>
+        <div class="temp-hum">
+            <p><i class="bi bi-thermometer-low"></i>Temp:&nbsp;<span style="color: aqua;" id="temp"></span></p>
+            <p><i class="bi bi-droplet-half"></i>Hum:&nbsp;<span style="color: aqua;" id="hum"></span></p>
+        </div>
+    </div>
+    <div class="main container">
+        <div class="home-content-2">
+            <p class="display-5">
+                <i class="bi bi-lightbulb-fill"></i>
+                Light
+            </p>
+            <div class="device-content">
+                <div class="d-flex">
+                    <p>Light:&nbsp;</p>
+                    <div class="form-check form-switch">
+                        <!-- <label class="form-check-label" for="light-switch">ON</label> -->
+                        <input class="form-check-input" type="checkbox" role="switch" id="light-switch"
+                            onChange="turn(this,'/light/status')">
+                    </div>
+                </div>
+                <div id="brightness">Brightness: {{light['brightness']}}/10</div>
+                <div>
+                    <i class="bi bi-alarm"></i>
+                    {% if light['schedule']: %}
+                    <div>
+                        <div>Start: {{light['startTime']}}</div>
+                        <div>End: {{light['endTime']}}</div>
+                        <div>
+                            {% for i in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']: %}
+                            {% if light['day'][loop.index]==1: %}
+                            <span style="color: yellow;">{{i}}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="home-content-2">
+            <p class="display-5">
+                <i class="bi bi-fan"></i>
+                Fan
+            </p>
+            <div class="device-content">
+                <div class="d-flex">
+                    <p>Fan:&nbsp;</p>
+                    <div class="form-check form-switch">
+                        <!-- <label class="form-check-label" for="fan-switch">ON</label> -->
+                        <input class="form-check-input" type="checkbox" role="switch" id="fan-switch"
+                            onChange="turn(this,'/fan/status')">
+                    </div>
+                </div>
+                <p>Level: {{fan['level']}}/3</p>
+                <div>
+                    <i class="bi bi-thermometer-sun"></i>
+                    {% if fan['auto']: %}
+                    <div>
+                        <div>Setting temp: {{fan['maxTemp']}}*C</div>
+                        <div>Setting hum: {{fan['maxHum']}}%</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="home-content-2">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    window.onload = function () {
+        var temphum = JSON.parse('{{temphum | tojson}}');
+        var light = JSON.parse('{{light| tojson}}');
+        var fan = JSON.parse('{{fan | tojson}}');
+        document.getElementById("light-switch").checked = light['status'];
+        document.getElementById("fan-switch").checked = fan['status'];
+        fillTempHumData(temphum);
+        var stompClient = null;
+        var socket = new SockJS("http://localhost:8080/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/temphum', function (data) {
+                var temphumData = JSON.parse(data.body);
+                console.log(temphumData);
+                fillTempHumData(temphumData)
+            });
+        });
+    }
+    function fillTempHumData(temphumData) {
+        document.getElementById("temp").innerHTML = "" + temphumData['temp'] + "*C";
+        document.getElementById("hum").innerHTML = "" + temphumData['hum'] + "%";
+    }
+</script>
+{% endblock %}

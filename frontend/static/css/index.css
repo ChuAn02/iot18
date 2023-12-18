@@ -1,0 +1,135 @@
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-align: center;
+    color: white;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+i {
+    padding: 0.25rem;
+}
+ul{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+li{
+    padding: 0.25rem;
+}
+nav * {
+    color: black;
+}
+
+input {
+    color: black;
+    max-width: 200px;
+    text-align: center !important;
+}
+
+.nav-button:hover {
+    animation-duration: 0.5s;
+    animation-name: zoom;
+    animation-fill-mode: forwards;
+}
+
+@keyframes zoom {
+    from {
+        background-color: white;
+        transform: scale(100%);
+    }
+
+    to {
+        background-color: rgba(0, 240, 240, 0.25);
+        transform: scale(115%);
+    }
+}
+
+.bg {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    z-index: -1;
+}
+
+.main {
+    background-color: rgba(0, 0, 0, 0.25);
+    padding-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.device-info {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.device-info>* {
+    text-align: left !important;
+    font-size: 150%;
+}
+
+.home-content-1 {
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.home-content-1>* {
+    backdrop-filter: blur(1px);
+    padding: 0.25rem;
+}
+
+.temp-hum {
+    display: flex;
+    align-items: center;
+    font-size: 200%;
+}
+
+.temp-hum>* {
+    padding: 0 0.75rem;
+}
+
+.home-content-2,
+.light-content,
+.fan-content {
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(1px);
+    width: 100%;
+    min-height: 50vh;
+    margin: 1rem;
+    justify-content: space-evenly;
+    border: 2.5px solid #ffffff;
+}
+
+.device-content {
+    font-size: 1.25rem;
+}
+
+.device-content>* {
+    text-align: left;
+    padding: 0.75rem 0.75rem 0.75rem 1.5rem;
+}
+#schedule{
+    background-color: rgba(0,0,0, 0.25);
+}
+#schedule * {
+    text-align: left;
+    padding-bottom: 0.25rem;
+}
+
+.schedule_input {
+    display: flex;
+    justify-content: space-between;
+}
+
+.schedule_input>div {
+    min-width: 50%
+}

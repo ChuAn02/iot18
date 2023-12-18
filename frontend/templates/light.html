@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block background %}
+<div class="bg" style=" background-image: url('/static/images/light_bg.jpg');"></div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <p class="display-1">Light setting</p>
+</div>
+<div class=" main container">
+    <div class="light-content">
+        <div class="device-content">
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="light-switch">Light</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="light-switch"
+                        onChange="turn(this,'/light/status');">
+                </div>
+            </div>
+            <div class="d-flex">
+                <label for="brightness" class="form-label">Brightness:&nbsp;</label>
+                <input type="range" style="align-self: center;" class="form-range" min="1" max="10" step="1"
+                    id="brightness" onchange="sendData('/light/brightness/'+this.value)">
+            </div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="auto-switch">Auto</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="auto-switch"
+                        onChange="turn(this,'/light/auto/status');">
+                </div>
+            </div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="schedule-switch">Schedule</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="schedule-switch"
+                        onChange="turn(this,'/light/schedule/status');">
+                </div>
+            </div>
+            <div id="schedule" method="post" action="/light/schedule">
+                <p style="font-size: 130%; text-align: center; color: aqua;">Schedule</p>
+                <div class="schedule_input">
+                    <div>
+                        <div>
+                            <label for="start-time">Start time</label>
+                            <input class="form-control" type="time" id="start-time" name="start-time">
+                        </div>
+                        <div>
+                            <label for="start-time">End time</label>
+                            <input class="form-control" type="time" id="end-time" name="end-time">
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="d-flex" style="flex-wrap: wrap;">
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="sun">
+                                    <label class="form-check-label" for="sun">
+                                        Sun
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="mon">
+                                    <label class="form-check-label" for="mon">
+                                        Mon
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="tue">
+                                    <label class="form-check-label" for="tue">
+                                        Tue
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="wed">
+                                    <label class="form-check-label" for="wed">
+                                        Wed
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="thu">
+                                    <label class="form-check-label" for="thu">
+                                        Thu
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="fri">
+                                    <label class="form-check-label" for="fri">
+                                        Fri
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="day" id="sat">
+                                    <label class="form-check-label" for="sat">
+                                        Sat
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <button class="btn btn-success" type="button" onclick="submitScheduleForm()">Apply</button>
+                    &nbsp;
+                    <div id="date-warning" style="color: red; display: none; ">Invalid input!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="light-content">
+        <p class="display-4">History</p>
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    window.onload = function () {
+        drawChart(JSON.parse('{{chart | tojson}}'));
+        fillLightData(JSON.parse('{{light | tojson}}'));
+        var stompClient = null;
+        var socket = new SockJS("http://localhost:8080/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/light', function (data) {
+                var lightData = JSON.parse(data.body);
+                console.log(lightData);
+                fillLightData(lightData);
+            });
+        });
+    }
+    function fillLightData(lightData) {
+        document.getElementById("light-switch").checked = lightData['status'];
+        document.getElementById("brightness").value = lightData['brightness'];
+        document.getElementById("auto-switch").checked = lightData['auto'];
+        document.getElementById("start-time").value = lightData['startTime'];
+        document.getElementById("end-time").value = lightData['endTime'];
+        document.getElementById("mon").checked = lightData['day'][2];
+        document.getElementById("tue").checked = lightData['day'][3];
+        document.getElementById("wed").checked = lightData['day'][4];
+        document.getElementById("thu").checked = lightData['day'][5];
+        document.getElementById("fri").checked = lightData['day'][6];
+        document.getElementById("sat").checked = lightData['day'][7];
+        document.getElementById("sun").checked = lightData['day'][1];
+        var scheduleSwitch = document.getElementById("schedule-switch");
+        scheduleSwitch.checked = lightData['schedule'];
+        var nodes = document.getElementById("schedule").getElementsByTagName("*")
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].disabled = !scheduleSwitch.checked;
+        }
+    }
+    function submitScheduleForm() {
+        var startTime = document.getElementById("start-time").value;
+        var endTime = document.getElementById("end-time").value;
+        if (startTime >= endTime) {
+            document.getElementById("date-warning").style.display = "block";
+            return;
+        }
+        document.getElementById("date-warning").style.display = "none";
+        var rs = "{";
+        rs += "\"startTime\": \"" + startTime + "\"";
+        rs += ", \"endTime\": \"" + endTime + "\"";
+        rs += ", \"day\":[";
+        rs += "0";
+        var checkboxes = document.getElementsByName("day");
+        for (var i = 0; i < checkboxes.length; i++) {
+            var val = 0;
+            if (checkboxes[i].checked) {
+                val = 1;
+            }
+            rs += "," + val;
+        }
+        rs += "]}";
+        sendData(rs, "/light/schedule");
+    }
+</script>
+{% endblock %}

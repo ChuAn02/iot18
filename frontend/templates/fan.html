@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block background %}
+<div class="bg" style=" background-image: url('/static/images/fan_bg.jpg');"></div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <p class="display-1">Fan setting</p>
+</div>
+<div class=" main container">
+    <div class="fan-content">
+        <div class="device-content">
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="fan-switch">Fan</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="fan-switch"
+                        onChange="turn(this,'/fan/status');">
+                </div>
+            </div>
+            <div class="d-flex">
+                <label for="level" class="form-label">Level:&nbsp;</label>
+                <input type="range" style="align-self: center;" class="form-range" min="1" max="3" step="1" id="level"
+                    onchange="sendData('/fan/level/'+this.value)" disabled>
+            </div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="auto-switch">Auto</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="auto-switch"
+                        onChange="turn(this,'/fan/auto/status');">
+                </div>
+            </div>
+            <div>
+                <i class="bi bi-thermometer-sun"></i>
+                <div style="text-align: left;">
+                    <label class="form-check-label" for="auto-switch">Temp (*C):</label>
+                    <input class="form-control" type="number" id="max-temp" max="60" min="20"
+                        value="{{fan['maxTemp']}}">
+                </div>
+                <div style="text-align: left;">
+                    <label class="form-check-label" for="auto-switch">Hum (%):</label>
+                    <input class="form-control" type="number" id="max-hum" max="100" min="0" value="{{fan['maxHum']}}">
+                </div>
+                <br>
+                <div class="d-flex">
+                    <button class="btn btn-success" type="button" onclick="submitAutoSettingForm()">Apply</button>
+                    &nbsp;
+                    <div id="input-warning" style="color: red; display: none; ">Invalid input!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fan-content">
+        <p class="display-4">History</p>
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    window.onload = function () {
+        drawChart(JSON.parse('{{chart | tojson}}'));
+        fillFanData(JSON.parse('{{fan | tojson}}'));
+        var stompClient = null;
+        var socket = new SockJS("http://localhost:8080/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/fan', function (data) {
+                var fanData = JSON.parse(data.body);
+                console.log(fanData);
+                fillFanData(fanData);
+            });
+        });
+    }
+    function fillFanData(lightData) {
+        document.getElementById("fan-switch").checked = lightData['status'];
+        document.getElementById("level").value = lightData['level'];
+        document.getElementById("auto-switch").checked = lightData['auto'];
+    }
+    function submitAutoSettingForm() {
+        var maxTemp = parseInt(document.getElementById("max-temp").value);
+        var maxHum = parseInt(document.getElementById("max-hum").value);
+        if (isNaN(maxTemp) || isNaN(maxHum) || maxTemp > 100 || maxTemp < 0 || maxHum > 100 || maxHum < 0) {
+            document.getElementById("input-warning").style.display = "block";
+            return;
+        }
+        document.getElementById("input-warning").style.display = "none";
+        var rs = "{";
+        rs += "\"maxTemp\": \"" + maxTemp + "\"";
+        rs += ", \"maxHum\": \"" + maxHum + "\"";
+        rs += "}";
+        sendData(rs, "/fan/setting");
+    }
+    
+</script>
+{% endblock %}

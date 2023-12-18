@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block background %}
+<div class="bg" style=" background-image: url('/static/images/light_bg.jpg');"></div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <p class="display-1">Light setting</p>
+</div>
+<div class=" main container">
+    <div class="light-content">
+        <div class="device-content">
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="light-switch">Light</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="light-switch" {%if light["status"
+                        ]:%}checked{% endif %} onChange="requestFromCheckbox(this,'turn-on','turn-off')">
+                </div>
+            </div>
+            <div class="d-flex">
+                <label for="brightness" class="form-label">Brightness:&nbsp;</label>
+                <input type="range" style="align-self: center;" class="form-range" min="1" max="10" step="1"
+                    id="brightness" value="{{light['brightness']}}" onchange="sendData('brightness/'+this.value)">
+            </div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="auto-switch">Auto</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="auto-switch" {%if light['auto'
+                        ]:%}checked{% endif %} onChange="autoAction()">
+                </div>
+            </div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="schedule-switch">Schedule</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="schedule-switch" onChange="scheduleAction()">
+                </div>
+            </div>
+            <form id="schedule" method="post" action="/light/schedule">
+                <p style="font-size: 130%; text-align: center; color: aqua;">Schedule</p>
+                <div class="schedule_input">
+                    <div>
+                        <div>
+                            <label for="start-time">Start time</label>
+                            <input class="form-control" type="time" id="start-time" name="start-time"
+                                value="{{light['startTime']}}">
+                        </div>
+                        <div>
+                            <label for="start-time">End time</label>
+                            <input class="form-control" type="time" id="start-time" name="end-time"
+                                value="{{light['endTime']}}">
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="d-flex" style="flex-wrap: wrap;">
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="mon" name="mon" {%if light['day' ][2]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="mon">
+                                        Mon
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="tue" id="tue" {%if light['day' ][3]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="tue">
+                                        Tue
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="wed" id="wed" {%if light['day' ][4]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="wed">
+                                        Wed
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="thu" id="thu" {%if light['day' ][5]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="thu">
+                                        Thu
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fri" id="fri" {%if light['day' ][6]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="fri">
+                                        Fri
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="sat" id="sat" {%if light['day' ][7]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="sat">
+                                        Sat
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="sun" id="sun" {%if light['day' ][1]: %}checked{% endif %}>
+                                    <label class="form-check-label" for="sun">
+                                        Sun
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="btn btn-success" type="submit">Apply</button>
+            </form>
+        </div>
+    </div>
+    <div class="light-content">
+        ---
+    </div>
+</div>
+<script>
+    scheduleAction();
+    function scheduleAction() {
+        var scheduleSwitch=document.getElementById("schedule-switch");
+        var autoSwitch=document.getElementById("auto-switch")
+        disabled=null;
+        if(scheduleSwitch.checked) disabled=false;
+        else disabled=true;
+        if(autoSwitch.checked && !disabled) autoSwitch.checked=false;
+        var nodes = document.getElementById("schedule").getElementsByTagName("*")
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].disabled = disabled;
+        }
+    }
+    function autoAction(){
+        var autoSwitch=document.getElementById("auto-switch")
+        var scheduleSwitch=document.getElementById("schedule-switch");
+        if(autoSwitch.checked && scheduleSwitch.checked) scheduleSwitch.checked=false;
+        requestFromCheckbox(autoSwitch,"auto","manual");
+    }
+    function sendScheduleForm(){
+        
+    }
+</script>
+{% endblock %}
